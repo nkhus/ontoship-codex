@@ -31,7 +31,7 @@ Measure on **3 real projects** (the ones already maintained with this approach):
 
 ## Secondary / supporting
 
-- **Time-to-first-answer in the KB** — operator finds the relevant doc via `/kb` instead of
+- **Time-to-first-answer in the KB** — operator finds the relevant doc via `$kb` instead of
   asking the author (proxy for KB self-sufficiency).
 - **Re-derivation cost** — wall-clock to rebuild index + map after edits (keeps the
   "derived is cheap" promise honest).

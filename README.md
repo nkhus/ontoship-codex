@@ -15,11 +15,10 @@ mode on. Colors = services. This isn't a mockup; it's a KB being used and evolve
 Markdown is the source of truth — the thing you and your AI assistant read directly, in
 any editor. Everything **derived** (a search index, this HTML overview, the link graph) is
 **regenerated** from the md, so git stays clean. No service, no database, no embeddings,
-no vendor. The entry point is `CLAUDE.md` / `AGENTS.md`; every folder's `README.md` is its
-index.
+no vendor. The entry point is `AGENTS.md`; every folder's `README.md` is its index.
 
 ```
-CLAUDE.md / AGENTS.md      ← entry point
+AGENTS.md                  ← entry point
 /docs
   README.md                ← master index
   /services
@@ -45,11 +44,11 @@ right file instead of grepping blind.
 | `lint` | *(optional)* ontology checks: broken links, frontmatter, folder READMEs |
 | `version` | — |
 
-OntoShip ships the **`gitmark`** plugin (KB + dev-flow) as a Claude Code marketplace.
-(The **`destructive-guard`** safety hook now lives in its own repo →
+OntoShip ships the **`gitmark`** plugin (KB + dev-flow) for **Codex**, through the
+`ontoship` marketplace. (The **`destructive-guard`** safety hook now lives in its own repo →
 [vakovalskii/destructive-guard](https://github.com/vakovalskii/destructive-guard).)
 
-**`gitmark`** — three skills and five commands:
+**`gitmark`** — three capability skills and five verbs:
 
 | skill | what |
 |---|---|
@@ -60,45 +59,48 @@ OntoShip ships the **`gitmark`** plugin (KB + dev-flow) as a Claude Code marketp
 So the agent searches the KB instead of grepping, follows light curation rules when
 editing, and ships changes through one repeatable, gated flow built around the KB.
 
-| command | what |
+| verb | what |
 |---|---|
-| `/kb` | search the KB (FTS5) and answer from the top hits |
-| `/kb-map` | build the self-contained HTML graph of the KB and open it |
-| `/doc` | compose/update **one** KB doc following the ontology (wraps `kb-curate`) |
-| `/onto-doc` | build the **whole** KB — fans out kb-curate curator agents per area, then lint + index + map |
-| `/ship` | run the dev-flow on a feature/fix: research → … → ship (MR → dev → main) |
+| `$kb` | search the KB (FTS5) and answer from the top hits |
+| `$kb-map` | build the self-contained HTML graph of the KB and open it |
+| `$doc` | compose/update **one** KB doc following the ontology (wraps `kb-curate`) |
+| `$onto-doc` | build the **whole** KB — fans out kb_curator subagents per area, then lint + index + map |
+| `$ship` | run the dev-flow on a feature/fix: research → … → ship (MR → dev → main) |
 
-### What to write after a command (for best results)
+Type `$` in Codex (or `/skills`) to pick one; Codex also triggers them implicitly when a
+request matches the skill description.
 
-The argument after the command is the prompt — be specific, results scale with it.
+### What to write after a verb (for best results)
 
-**`/kb <query>`** — a topic, symbol, concept or question to find in the KB.
-- Good: `/kb how is the billing webhook signature verified`, `/kb tier rate limits`, `/kb sandbox isolation`.
+The text after the verb is the prompt — be specific, results scale with it.
+
+**`$kb <query>`** — a topic, symbol, concept or question to find in the KB.
+- Good: `$kb how is the billing webhook signature verified`, `$kb tier rate limits`, `$kb sandbox isolation`.
 - Use concrete nouns, not full sentences. Cyrillic, typos and substrings are fine (trigram/fuzzy).
-- Bare `/kb` → prints index stats + the syntax.
+- Bare `$kb` → prints index stats + the syntax.
 
-**`/kb-map [output-path]`** — usually nothing (defaults to `docs-map.html`).
-- Optional path: `/kb-map build/graph.html`.
+**`$kb-map [output-path]`** — usually nothing (defaults to `docs-map.html`).
+- Optional path: `$kb-map build/graph.html`.
 
-**`/doc <topic / what to document>`** — name the thing to write up; the agent picks the
+**`$doc <topic / what to document>`** — name the thing to write up; the agent picks the
 node_type+folder, writes frontmatter + typed links, and indexes it.
-- Good: `/doc how the billing webhook verifies the YooKassa signature`, `/doc decision: drop Firecracker-per-session`.
+- Good: `$doc how the billing webhook verifies the YooKassa signature`, `$doc decision: drop Firecracker-per-session`.
 - It searches first and **edits** an existing doc instead of duplicating.
 
-**`/onto-doc [scope]`** — bootstrap/rebuild the **entire** KB. Empty = whole repo; or scope it
-(`/onto-doc services/api services/billing`, or `/onto-doc only reference docs`).
-- Surveys the codebase, splits it into doc areas, and **dispatches a curator agent per area**
+**`$onto-doc [scope]`** — bootstrap/rebuild the **entire** KB. Empty = whole repo; or scope it
+(`$onto-doc services/api services/billing`, or `$onto-doc only reference docs`).
+- Surveys the codebase, splits it into doc areas, and **dispatches a curator subagent per area**
   (parallel), then lints + reindexes + regenerates the graph.
 - Use it on a fresh repo to stand up docs/ from nothing, or to backfill coverage.
 
-**`/ship <what + why + done>`** — describe the change as fully as you can; this is what makes
+**`$ship <what + why + done>`** — describe the change as fully as you can; this is what makes
 the dev-flow good. Include **what** to do, **why** (the goal), and the **done-criteria**, and
 name the target service/file if you know it.
-- Good: `/ship add a 60 rpm rate-limit to /api/search; goal: stop abuse; done = HTTP 429 over the limit + a unit test + a note in docs/reference/limits.md`.
-- Weak: `/ship fix search` → the agent has to guess the goal and the done-criteria.
+- Good: `$ship add a 60 rpm rate-limit to /api/search; goal: stop abuse; done = HTTP 429 over the limit + a unit test + a note in docs/reference/limits.md`.
+- Weak: `$ship fix search` → the agent has to guess the goal and the done-criteria.
 - Add "deploy it" / "don't deploy" if you want to control the last step.
 
-> **Looking for `destructive-guard`?** The `PreToolUse` safety hook that intercepts
+> **Looking for `destructive-guard`?** The safety hook that intercepts
 > destructive commands (`rm -rf`, `git reset --hard`, `terraform destroy`, `DROP TABLE`…)
 > and turns them into a y/n confirmation has moved to its own repo:
 > **[github.com/vakovalskii/destructive-guard](https://github.com/vakovalskii/destructive-guard)**
@@ -116,15 +118,25 @@ Pure `python3` (≥3.7) with SQLite **FTS5**; the **trigram** tokenizer (SQLite 
 fuzzy/substring/non-Latin matching — detected automatically, degrades gracefully. Add
 `.gitmark/` to `.gitignore` — it's a build artifact.
 
-## Install as a Claude Code plugin
+## Install for Codex
 
-```text
-/plugin marketplace add vakovalskii/ontoship
-/plugin install gitmark@ontoship
+Drop the repo into your project (or clone it next to your code) — Codex discovers skills
+repo-locally from `.agents/skills`, which here symlinks to `skills/`:
+
+```bash
+git clone https://github.com/vakovalskii/ontoship
+cp -R ontoship/skills your-repo/.agents/skills
 ```
 
-Or just copy `skills/` and `commands/` into your repo's `.claude/` — project-local, no
-marketplace needed.
+Or install it as a plugin from the bundled marketplace (`.agents/plugins/marketplace.json`
++ `.codex-plugin/plugin.json`):
+
+```bash
+codex plugin marketplace add vakovalskii/ontoship
+codex plugin add gitmark
+```
+
+User-wide instead of per-repo: copy `skills/` into `~/.agents/skills`.
 
 ## Optional: the ontology (only if you want guardrails)
 

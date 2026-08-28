@@ -1,0 +1,27 @@
+{
+  "name": "gitmark",
+  "version": "0.1.0",
+  "description": "OntoShip — ontology-driven docs that ship: a md+git knowledge base (FTS5 search, HTML graph, ontology linter) plus the spec-driven dev-flow built on it. CLI/plugin: gitmark.",
+  "author": {
+    "name": "Valera Kovalskii",
+    "url": "https://github.com/vakovalskii"
+  },
+  "homepage": "https://github.com/vakovalskii/ontoship",
+  "repository": "https://github.com/vakovalskii/ontoship",
+  "license": "MIT",
+  "keywords": ["knowledge-base", "fts5", "search", "markdown", "ontology", "codex"],
+  "skills": "./skills/",
+  "interface": {
+    "displayName": "OntoShip / gitmark",
+    "shortDescription": "md+git knowledge base with FTS5 search, an HTML graph, and a gated dev-flow",
+    "longDescription": "Treats the repo's markdown as the knowledge base: FTS5 (bm25 + trigram/fuzzy) search, a self-contained HTML tree+graph, a light code-ontology linter, and the spec-driven dev-flow that ships features through it.",
+    "developerName": "Valera Kovalskii",
+    "category": "Productivity",
+    "capabilities": ["Read", "Write"],
+    "websiteURL": "https://github.com/vakovalskii/ontoship",
+    "defaultPrompt": [
+      "Use $kb to find where the billing webhook signature is verified.",
+      "Use $onto-doc to bootstrap the knowledge base for this repo."
+    ]
+  }
+}

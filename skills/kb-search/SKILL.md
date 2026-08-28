@@ -9,8 +9,11 @@ This plugin treats the repo's markdown as a **md + README(index) + git** knowled
 Markdown is the source of truth; the search index and HTML map are **derived** and
 regenerated from md (`.gitmark/` is gitignored). The CLI is pure Python stdlib.
 
-Script: `${CLAUDE_PLUGIN_ROOT}/skills/kb-search/gitmark.py` (when run as a project-local
-copy, it's `.claude/skills/kb-search/gitmark.py`).
+Script: `gitmark.py`, which sits **next to this `SKILL.md`** (Codex prints this skill's
+source path in the skills list). In a repo checkout that is
+`skills/kb-search/gitmark.py`; installed as a plugin it is
+`<plugin-root>/skills/kb-search/gitmark.py`. Run it from the repo root, or pass
+`--root <repo>` before the subcommand.
 
 ## When to use
 
@@ -23,7 +26,7 @@ copy, it's `.claude/skills/kb-search/gitmark.py`).
 ## Commands
 
 ```bash
-G="python3 ${CLAUDE_PLUGIN_ROOT:-.claude/plugins/gitmark}/skills/kb-search/gitmark.py"
+G="python3 <this-skill-dir>/gitmark.py"   # repo checkout: skills/kb-search/gitmark.py
 
 $G index                 # (re)build .gitmark/index.db  (fast)
 $G search "<query>"      # bm25 + trigram(substring) + fuzzy(3-gram); -k N, --json

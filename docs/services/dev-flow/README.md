@@ -6,7 +6,7 @@ status: active
 updated: 2026-06-16
 tags: [dev-flow, pipeline, worktree, spec, ship]
 links:
-  documents: [../../../skills/dev-flow/SKILL.md, ../../../commands/ship.md]
+  documents: [../../../skills/dev-flow/SKILL.md, ../../../skills/ship/SKILL.md]
   relates_to: [../gitmark-cli/README.md, ../kb-curate/README.md]
 ---
 
@@ -20,7 +20,7 @@ GitMark knowledge base, see [kb-curate](../kb-curate/README.md)) is the carrier 
 knowledge: onboarding, hand-off, and scaling all start from it, not from the code.
 
 It is defined by the [`dev-flow` skill](../../../skills/dev-flow/SKILL.md) and invoked
-through the [`/ship` command](../../../commands/ship.md).
+through the [`$ship` skill](../../../skills/ship/SKILL.md).
 
 ## The gated pipeline
 
@@ -116,13 +116,13 @@ onboarding, hand-off, and scaling start from the KB rather than from reading the
 
 ## How a user invokes it
 
-Run the [`/ship`](../../../commands/ship.md) command with a description of the change:
+Run the [`$ship`](../../../skills/ship/SKILL.md) skill with a description of the change:
 
 ```
-/ship <feature or fix description>
+$ship <feature or fix description>
 ```
 
-`/ship` drives the change through every stage of the pipeline, keeping the gates (tests +
+`$ship` drives the change through every stage of the pipeline, keeping the gates (tests +
 independent review) and never skipping the spec. For a one-line change the stages can be
 collapsed, but the gates stay — they are where the 191 bugs were caught.
 
