@@ -5,7 +5,7 @@ service: _platform
 status: active
 updated: 2026-06-16
 links:
-  part_of: [../CLAUDE.md]
+  part_of: [../AGENTS.md]
 ---
 
 # OntoShip — knowledge base
@@ -16,8 +16,8 @@ them as truth. See [ontology.md](ontology.md) for how documents are typed and li
 
 ## Reference
 
-- [architecture.md](reference/architecture.md) — how OntoShip fits together (marketplace → two plugins → skills → KB)
-- [commands.md](reference/commands.md) — slash commands: `/kb`, `/kb-map`, `/doc`, `/onto-doc`, `/ship`
+- [architecture.md](reference/architecture.md) — how OntoShip fits together (marketplace → plugin → skills → KB)
+- [commands.md](reference/commands.md) — the skills: `$kb`, `$kb-map`, `$doc`, `$onto-doc`, `$ship`
 - [metrics.md](reference/metrics.md) — what OntoShip is measured by (experience-transfer metrics)
 - [ontology.md](ontology.md) — the knowledge model (node_type, properties, typed links, linter)
 

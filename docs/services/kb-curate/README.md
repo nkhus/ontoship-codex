@@ -75,8 +75,8 @@ These map to the kinetic layer ("Actions") of the ontology.
 ### REINDEX — always at the end
 
 ```bash
-python3 <plugin>/skills/kb-search/gitmark.py lint     # invariants I1–I6
-python3 <plugin>/skills/kb-search/gitmark.py index    # rebuild search
+python3 <skills>/kb-search/gitmark.py lint     # invariants I1–I6
+python3 <skills>/kb-search/gitmark.py index    # rebuild search
 ```
 
 `lint` flags missing/broken frontmatter, types outside the vocabulary, orphans, broken

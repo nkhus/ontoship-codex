@@ -27,10 +27,11 @@ scaling all start from it, not from the code.
    (`implemented_by`).
 7. **Tests** — write/adjust unit + E2E for the feature. The test is part of the feature,
    not an afterthought.
-8. **Independent review** — run an **independent model** (e.g. Codex CLI, read-only) over
-   the diff for logic and security bugs before rollout. A second model catches what the
-   author's model misses — on a real production codebase this pass caught **191 bugs**
-   before they reached prod.
+8. **Independent review** — run an **independent model** over the diff for logic and
+   security bugs before rollout: spawn the read-only `kb_reviewer` subagent on a
+   *different* model (`.codex/agents/kb-reviewer.toml`), or `/review`, or an external CLI.
+   A second model catches what the author's model misses — on a real production codebase
+   this pass caught **191 bugs** before they reached prod.
 9. **Dev-tests** — open an **MR with the commits into the `dev` branch**; run the full
    suite there. Red → fix in the worktree, don't merge.
 10. **Prod-tests** — E2E/smoke against the **real prod contour**, not only mocks or dev.

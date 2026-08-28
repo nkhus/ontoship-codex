@@ -1,0 +1,4 @@
+# Project-scoped Codex settings for OntoShip.
+# Curator fan-out ($onto-doc) benefits from a few parallel agent threads.
+[agents]
+max_concurrent_threads_per_session = 6

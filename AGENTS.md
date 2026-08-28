@@ -1,21 +1,27 @@
 # OntoShip — entry point
 
-OntoShip is a Claude Code marketplace (`ontoship`) shipping **gitmark** — an md+git
-knowledge base (FTS5 search, HTML graph, ontology linter) plus the spec-driven dev-flow
-built on top of it.
+OntoShip is a Codex plugin (`gitmark`) published through the `ontoship` marketplace — an
+md+git knowledge base (FTS5 search, HTML graph, ontology linter) plus the spec-driven
+dev-flow built on top of it.
 
-> **destructive-guard** (the PreToolUse safety hook) now lives in its own repo:
+> **destructive-guard** (the safety hook) now lives in its own repo:
 > [github.com/vakovalskii/destructive-guard](https://github.com/vakovalskii/destructive-guard).
 
 ## Where things live
 
 ```
-.claude-plugin/        marketplace.json + plugin.json (the gitmark plugin manifest)
-commands/              slash commands: /kb /kb-map /doc /onto-doc /ship
+.codex-plugin/         plugin.json (the gitmark plugin manifest)
+.agents/
+  plugins/             marketplace.json (the `ontoship` marketplace)
+  skills/              symlink → ../skills (repo-scoped skill discovery)
+.codex/
+  agents/              custom subagents: kb_curator, kb_reviewer
+  config.toml          project-scoped Codex settings
 skills/
   kb-search/           the gitmark CLI engine (gitmark.py) + SKILL.md
   kb-curate/           rules for maintaining the KB as a typed ontology
   dev-flow/            the gated ship pipeline
+  kb/ kb-map/ doc/ onto-doc/ ship/   the verbs: $kb $kb-map $doc $onto-doc $ship
 docs/                  the knowledge base itself (this is the KB)
 ```
 
@@ -24,7 +30,7 @@ docs/                  the knowledge base itself (this is the KB)
 - **Knowledge base** → [docs/README.md](docs/README.md) — master index
 - **The model** → [docs/ontology.md](docs/ontology.md) — how docs are typed & linked
 - **How it fits together** → [docs/reference/architecture.md](docs/reference/architecture.md)
-- **Commands** → [docs/reference/commands.md](docs/reference/commands.md)
+- **Skills** → [docs/reference/commands.md](docs/reference/commands.md)
 
 ## Principle
 

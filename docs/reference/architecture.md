@@ -6,22 +6,24 @@ status: active
 updated: 2026-06-16
 tags: [architecture, overview, marketplace, plugin]
 links:
-  documents: [../../.claude-plugin/marketplace.json, ../../.claude-plugin/plugin.json]
+  documents: [../../.codex-plugin/plugin.json, ../../.agents/plugins/marketplace.json]
   relates_to: [../../ontology.md, ../services/gitmark-cli/README.md, ../services/dev-flow/README.md, ../services/destructive-guard/README.md, commands.md]
 ---
 
 # OntoShip architecture
 
-OntoShip is a **Claude Code marketplace** (`ontoship`) that ships **two plugins**:
+OntoShip is a **Codex plugin** — `gitmark`, distributed through the `ontoship` marketplace:
 
 - **`gitmark`** — a markdown + git knowledge base with FTS5 search, a self-contained
   HTML graph, an ontology linter, *and* the spec-driven **dev-flow** built on top of it.
-- **`destructive-guard`** — a `PreToolUse` Bash safety hook that intercepts destructive
-  commands and forces a y/n confirmation.
 
-The marketplace manifest (`.claude-plugin/marketplace.json`) registers both; the root
-`.claude-plugin/plugin.json` defines the `gitmark` plugin, and
-`destructive-guard/.claude-plugin/plugin.json` defines the guard.
+The plugin manifest is `.codex-plugin/plugin.json`; it points at `./skills/`. The repo
+marketplace `.agents/plugins/marketplace.json` registers the plugin for local install, and
+`.agents/skills` symlinks to `skills/` so Codex also discovers the skills repo-locally,
+without installing anything.
+
+> **`destructive-guard`** — the safety hook that intercepts destructive commands — now
+> lives in [its own repo](https://github.com/vakovalskii/destructive-guard).
 
 ## Core principle: md+git is the source of truth
 
@@ -34,7 +36,7 @@ service, database, embeddings, or vendor to run:
 | `index.db` (SQLite FTS5) | the `.md` files | `.gitmark/` (gitignored) | `gitmark index` |
 | `docs-map.html` (tree + graph) | the `.md` files + their links | wherever you point it | `gitmark map` |
 
-The entry point is `CLAUDE.md` / `AGENTS.md`; every folder's `README.md` is its index.
+The entry point is `AGENTS.md`; every folder's `README.md` is its index.
 Because derived artifacts never live in git, the KB can never drift from its index — you
 just re-run the CLI.
 
@@ -42,23 +44,22 @@ just re-run the CLI.
 
 ```
 ontoship/
-├─ .claude-plugin/
-│  ├─ marketplace.json        ← marketplace "ontoship": 2 plugins
-│  └─ plugin.json             ← the gitmark plugin
-├─ commands/                  ← slash commands (the user-facing verbs)
-│  ├─ kb.md        (/kb)       search the KB
-│  ├─ kb-map.md    (/kb-map)   build the HTML graph
-│  ├─ doc.md       (/doc)      compose/update ONE doc
-│  ├─ onto-doc.md  (/onto-doc) build the WHOLE KB (fan-out curators)
-│  └─ ship.md      (/ship)     run the dev-flow
-├─ skills/                    ← the capabilities the commands invoke
+├─ AGENTS.md                  ← entry point (project instructions Codex reads first)
+├─ .codex-plugin/
+│  └─ plugin.json             ← the gitmark plugin manifest (skills: ./skills/)
+├─ .agents/
+│  ├─ plugins/marketplace.json  ← marketplace "ontoship"
+│  └─ skills → ../skills      ← repo-scoped skill discovery (symlink)
+├─ .codex/
+│  ├─ agents/                 ← custom subagents: kb_curator, kb_reviewer
+│  └─ config.toml             ← project-scoped Codex settings
+├─ skills/                    ← everything the agent can do
 │  ├─ kb-search/  SKILL.md + gitmark.py   ← the CLI engine (zero-dep, stdlib)
 │  ├─ kb-curate/  SKILL.md                ← curation / ontology rules
-│  └─ dev-flow/   SKILL.md                ← the ship pipeline
-├─ destructive-guard/         ← the second plugin
-│  ├─ .claude-plugin/plugin.json
-│  ├─ hooks/                  ← the PreToolUse Bash hook
-│  └─ tests/
+│  ├─ dev-flow/   SKILL.md                ← the ship pipeline
+│  ├─ kb/ kb-map/                         ← $kb, $kb-map    (search / graph)
+│  ├─ doc/ onto-doc/                      ← $doc, $onto-doc (one doc / whole KB)
+│  └─ ship/                               ← $ship           (run the dev-flow)
 └─ docs/                      ← the KB itself (dogfooded)
    ├─ ontology.md             ← the knowledge model (types, links, invariants)
    ├─ services/               ← per-component READMEs (gitmark-cli, dev-flow, …)
@@ -67,42 +68,42 @@ ontoship/
 
 ## How the pieces connect
 
-A user types a slash command; the command delegates to a skill; the skill calls the
-`gitmark` CLI engine, which reads and writes the markdown KB:
+A user invokes a verb skill (`$kb`, `$doc`, …) — or Codex picks it implicitly from the
+skill description; the verb delegates to a capability skill, which calls the `gitmark` CLI
+engine, which reads and writes the markdown KB:
 
 ```
  user
-   │  /kb · /kb-map · /doc · /onto-doc · /ship
+   │  $kb · $kb-map · $doc · $onto-doc · $ship
    ▼
- commands/*.md ──────────────► skills/
+ verb skills ────────────────► capability skills
    │                              ├─ kb-search ── gitmark.py ──► .md KB ──► .gitmark/index.db
    │                              │   (the CLI engine)               └──► docs-map.html
    │                              ├─ kb-curate  (ontology rules) ──► writes/edits .md
    │                              └─ dev-flow   (ship pipeline) ────► uses kb-curate for specs
    ▼
- destructive-guard (PreToolUse hook)  ── guards every Bash command, in parallel
+ .codex/agents/ ── kb_curator (fan-out per doc area) · kb_reviewer (read-only review gate)
 ```
 
 - **`kb-search`** is the heart: `skills/kb-search/gitmark.py` is the single
   Python-stdlib CLI (`index`, `search`, `map`, `serve`, `stat`, `lint`, `version`).
-  `/kb` and `/kb-map` are thin wrappers over it.
+  `$kb` and `$kb-map` are thin wrappers over it.
 - **`kb-curate`** holds the curation rules derived from
   [`ontology.md`](../../ontology.md) — what `node_type` a doc gets, where it lives, its
-  frontmatter and typed links. `/doc` wraps it for one doc; `/onto-doc` fans out a
-  `kb-curate` curator agent per area to build the whole KB, then lints + indexes + maps.
-- **`dev-flow`** is the spec-driven loop (`/ship`): research → tasks → goal → spec (written
+  frontmatter and typed links. `$doc` wraps it for one doc; `$onto-doc` fans out a
+  `kb_curator` subagent per area to build the whole KB, then lints + indexes + maps.
+- **`dev-flow`** is the spec-driven loop (`$ship`): research → tasks → goal → spec (written
   as markdown via `kb-curate`) → isolated git worktree → implement → tests → independent
   review → dev-tests → prod-tests → ship (MR → `dev` → `main`). Its specs become KB docs,
   closing the loop back into the same markdown.
-- **`destructive-guard`** is orthogonal to the KB: it runs as a `PreToolUse` Bash hook on
-  every command, token-parsing for destructive verbs (`rm`, `git reset --hard`,
-  `docker rm -v`, SQL `DROP`/`TRUNCATE`) and forcing y/n confirmation even under
-  `bypassPermissions`.
+- **`destructive-guard`** is orthogonal to the KB and ships separately: it hooks every
+  shell command, token-parsing for destructive verbs (`rm`, `git reset --hard`,
+  `docker rm -v`, SQL `DROP`/`TRUNCATE`) and forcing y/n confirmation.
 
 ## See also
 
 - [`ontology.md`](../../ontology.md) — the knowledge model (object types, typed links, invariants).
-- [`commands.md`](commands.md) — the slash-command reference.
+- [`commands.md`](commands.md) — the skill reference.
 - Per-component detail: [gitmark CLI](../services/gitmark-cli/README.md) ·
   [dev-flow](../services/dev-flow/README.md) ·
   [destructive-guard](../services/destructive-guard/README.md).
